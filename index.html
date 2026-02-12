@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Assessment Report - Pratik Ingale</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;700&family=Inter:wght@300;400;600;800&display=swap');
+
+        :root {
+            --hacker-green: #00ff41;
+            --hacker-green-dim: rgba(0, 255, 65, 0.2);
+            --bg-dark: #050608;
+            --bg-card: #0e1117;
+            --danger-red: #ff3e3e;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Initial Boot Loading Overlay */
+        #boot-loader {
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .boot-text {
+            color: var(--hacker-green);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            text-shadow: 0 0 5px var(--hacker-green);
+        }
+
+        /* Scanning Line */
+        .scan-line {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--hacker-green), transparent);
+            position: absolute;
+            z-index: 50;
+            animation: scan 6s linear infinite;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 2px;
+            width: 100%;
+            height: 100%;
+            text-shadow: -1px 0 #ff00c1;
+            clip-path: inset(0 0 0 0);
+            animation: glitch-anim 3s infinite linear alternate-reverse;
+            background: var(--bg-dark);
+            opacity: 0.8;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip-path: inset(80% 0 1% 0); }
+            20% { clip-path: inset(20% 0 60% 0); }
+            40% { clip-path: inset(40% 0 40% 0); }
+            60% { clip-path: inset(10% 0 80% 0); }
+            80% { clip-path: inset(70% 0 10% 0); }
+            100% { clip-path: inset(30% 0 50% 0); }
+        }
+
+        /* Terminal Window */
+        .terminal-window {
+            background-color: #000;
+            border: 1px solid #222;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .terminal-header {
+            background-color: #1a1a1a;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+            border-bottom: 1px solid #222;
+        }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        /* Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1s cubic-bezier(0.17, 0.55, 0.55, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .pulse-live {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.6); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 255, 65, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); }
+        }
+
+        /* Image Mockup Frames */
+        .mockup-frame {
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #111;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+        .mockup-frame:hover {
+            transform: scale(1.02);
+            border-color: var(--hacker-green);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--hacker-green); }
+
+        .stat-card {
+            background: linear-gradient(145deg, #0e1117 0%, #050608 100%);
+        }
+
+        /* Network Map Styles */
+        .node-line {
+            stroke-dasharray: 10;
+            animation: dash 5s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .bg-card, .terminal-window, .stat-card { background: #f9f9f9 !important; border: 1px solid #ddd !important; color: black !important; box-shadow: none !important; }
+            .reveal { opacity: 1 !important; transform: none !important; }
+            #matrix-bg, #boot-loader, .scan-line { display: none !important; }
+            .text-green-500, .text-blue-500 { color: #000 !important; font-weight: bold; }
+            .text-gray-400, .text-gray-500 { color: #333 !important; }
+            h1, h2, h3, h4, .text-white { color: black !important; }
+            .pulse-live { animation: none !important; box-shadow: none !important; border: 2px solid black !important; }
+            nav { position: relative !important; background: white !important; border-bottom: 2px solid black !important; }
+        }
+    </style>
+</head>
+<body class="p-0 m-0">
+
+    <!-- Loading Screen -->
+    <div id="boot-loader" class="no-print">
+        <div class="mb-4">
+            <i class="fas fa-shield-virus text-4xl text-green-500 animate-pulse"></i>
+        </div>
+        <div id="boot-sequence" class="boot-text text-center w-64 h-40 overflow-hidden"></div>
+        <div class="w-48 h-1 bg-white/10 mt-4 rounded-full overflow-hidden">
+            <div id="boot-progress" class="h-full bg-green-500 w-0 transition-all duration-300"></div>
+        </div>
+    </div>
+
+    <div class="scan-line no-print"></div>
+
+    <!-- Navigation Header -->
+    <nav class="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-white/5 p-4 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-green-500/10 rounded border border-green-500/30 flex items-center justify-center">
+                    <i class="fas fa-terminal text-green-500 text-sm"></i>
+                </div>
+                <span class="mono font-bold text-lg tracking-tighter text-white uppercase">Pratik_Ingale_Sec</span>
+            </div>
+            <div class="hidden md:flex gap-10 text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500">
+                <a href="#summary" class="hover:text-green-500 transition">01_OVERVIEW</a>
+                <a href="#recon" class="hover:text-green-500 transition">02_OSINT</a>
+                <a href="#scanning" class="hover:text-green-500 transition">03_NETWORK</a>
+                <a href="#evidence" class="hover:text-green-500 transition">04_EVIDENCE</a>
+                <a href="#analyst" class="hover:text-green-500 transition">05_ANALYST</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="window.print()" class="text-[10px] mono bg-green-500 text-black px-4 py-1.5 rounded-full font-bold hover:bg-white transition flex items-center gap-2">
+                    <i class="fas fa-file-pdf"></i> EXPORT_REPORT
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative min-h-screen flex flex-col items-center justify-center text-center p-6 overflow-hidden">
+        <div class="absolute inset-0 opacity-[0.1] pointer-events-none no-print" id="matrix-bg"></div>
+        
+        <div class="reveal max-w-4xl z-10">
+            <div class="inline-block px-4 py-1 rounded-full border border-green-500/20 bg-green-500/5 text-green-500 mono text-[10px] mb-8 tracking-[0.4em] uppercase">
+                Assessment Date: Feb 11, 2026
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black mb-8 glitch tracking-tighter text-white" data-text="OSINT_REPORT">
+                OSINT_REPORT
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed font-light">
+                Advanced Information Gathering & Network Probing on authorized lab environments.
+            </p>
+            
+            <div class="mt-16 flex flex-wrap justify-center gap-6">
+                <div class="stat-card border border-white/5 p-6 rounded-2xl w-48 text-left">
+                    <p class="text-[10px] text-gray-500 uppercase mb-2 mono">Lead Analyst</p>
+                    <p class="text-white font-bold tracking-tight">Pratik Ingale</p>
+                </div>
+                <div class="stat-card border border-white/5 p-6 rounded-2xl w-48 text-left border-l-green-500 border-l-2">
+                    <p class="text-[10px] text-gray-500 uppercase mb-2 mono">Target IP</p>
+                    <p class="text-white font-bold tracking-tight">192.168.37.134</p>
+                </div>
+                <div class="stat-card border border-white/5 p-6 rounded-2xl w-48 text-left">
+                    <p class="text-[10px] text-gray-500 uppercase mb-2 mono">Scope</p>
+                    <p class="text-green-500 font-bold tracking-tight italic">CERTIFIEDHACKER</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 animate-bounce text-gray-600 no-print">
+            <i class="fas fa-chevron-down text-2xl"></i>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 max-w-6xl py-20">
+        
+        <!-- Summary -->
+        <section id="summary" class="mb-40 reveal">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="mono text-green-500 text-lg font-bold">01/</span>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">Executive Summary</h2>
+                <div class="flex-grow h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="space-y-6">
+                    <p class="text-xl text-gray-400 leading-relaxed">
+                        This assessment evaluates the security posture of the <span class="text-white">certifiedhacker.com</span> lab through OSINT and Network Scanning.
+                    </p>
+                    <p class="text-gray-500 leading-relaxed">
+                        Reconnaissance revealed exposed login portals and sensitive documentation leaked via third-party WordPress directories. Network scanning identified a live host running a legacy Apache service, posing a critical security risk.
+                    </p>
+                </div>
+                <div class="bg-card border border-white/5 p-8 rounded-3xl">
+                    <h3 class="mono text-[10px] text-green-500 uppercase tracking-widest mb-6 font-bold">Technical Methodology</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center gap-4">
+                            <i class="fas fa-search text-blue-500"></i>
+                            <span class="text-sm">Google Dorking for Login Portals & PDFs</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <i class="fas fa-user-tag text-green-500"></i>
+                            <span class="text-sm">theHarvester for Subdomain Recon</span>
+                        </li>
+                        <li class="flex items-center gap-4">
+                            <i class="fas fa-shield-alt text-red-500"></i>
+                            <span class="text-sm">Nmap (v7.98) for Service Versioning</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recon Section -->
+        <section id="recon" class="mb-40 reveal">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="mono text-green-500 text-lg font-bold">02/</span>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">Information Gathering</h2>
+                <div class="flex-grow h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
+            
+            <div class="terminal-window mb-12">
+                <div class="terminal-header items-center">
+                    <div class="dot dot-red"></div>
+                    <div class="dot dot-yellow"></div>
+                    <div class="dot dot-green"></div>
+                    <span class="ml-4 mono text-[10px] text-gray-500 flex-grow uppercase">shell: theHarvester --target certifiedhacker.com</span>
+                    <button id="run-recon" class="no-print bg-green-500 hover:bg-white text-black px-4 py-1 rounded text-[10px] font-black transition-all">EXECUTE_RECON</button>
+                </div>
+                <div id="recon-output" class="p-8 mono text-xs md:text-sm leading-relaxed min-h-[300px] max-h-96 overflow-y-auto bg-black/80">
+                    <p class="text-gray-500 mb-2 italic"># Initializing theHarvester engine... Click EXECUTE to start.</p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-card p-10 rounded-3xl border border-white/5">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                        <i class="fab fa-google text-blue-500"></i> Advanced Search Operators
+                    </h3>
+                    <div class="space-y-4 mono text-[11px]">
+                        <div class="p-3 bg-black rounded border border-white/5 text-green-500">
+                            site:certifiedhacker.com inurl:login
+                        </div>
+                        <div class="p-3 bg-black rounded border border-white/5 text-green-500">
+                            site:certifiedhacker.com filetype:pdf
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-card p-10 rounded-3xl border border-white/5">
+                    <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+                        <i class="fas fa-file-invoice text-yellow-500"></i> Discovery Results
+                    </h3>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500 text-[10px]"></i> Subdomain: <span class="text-white">demo.certifiedhacker.com</span></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500 text-[10px]"></i> Portal: <span class="text-white">Administrative Portal Sign-in</span></li>
+                        <li class="flex items-center gap-2"><i class="fas fa-check-circle text-green-500 text-[10px]"></i> Document: <span class="text-white">CEH V10 Study Guide (PDF)</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scanning Section -->
+        <section id="scanning" class="mb-40 reveal">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="mono text-green-500 text-lg font-bold">03/</span>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">Network Probing</h2>
+                <div class="flex-grow h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
+
+            <div class="bg-card border border-white/10 rounded-3xl p-10 mb-10 overflow-hidden relative">
+                <h3 class="mono text-[10px] text-gray-500 uppercase tracking-widest mb-10">Network Topology Visualizer</h3>
+                
+                <div class="w-full h-48 md:h-64 relative flex items-center justify-between px-10 mb-10">
+                    <!-- Source Node -->
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center relative">
+                            <i class="fas fa-user-ninja text-blue-400 text-2xl"></i>
+                        </div>
+                        <span class="mono text-[10px] text-blue-400">Kali_Linux</span>
+                    </div>
+
+                    <!-- Animated Path -->
+                    <div class="flex-grow mx-4 relative h-px bg-white/5">
+                        <svg class="absolute top-1/2 left-0 w-full h-20 -translate-y-1/2 pointer-events-none overflow-visible" preserveAspectRatio="none">
+                            <path d="M 0 40 Q 150 0 300 40 T 600 40" fill="none" stroke="rgba(0, 255, 65, 0.4)" stroke-width="2" class="node-line" id="scan-path" />
+                        </svg>
+                    </div>
+
+                    <!-- Target Node -->
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center relative pulse-live">
+                            <i class="fas fa-server text-green-500 text-3xl"></i>
+                        </div>
+                        <span class="mono text-[10px] text-green-500">192.168.37.134</span>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 pt-8 border-t border-white/5">
+                    <div class="terminal-window p-6 mono text-xs bg-black/60">
+                        <p class="text-blue-400 mb-2"># nmap -sV -p 80,443 192.168.37.134</p>
+                        <p class="text-white mt-4 font-bold">PORT &nbsp;&nbsp; STATE &nbsp; SERVICE &nbsp; VERSION</p>
+                        <p class="text-green-500">80/tcp &nbsp; open &nbsp;&nbsp; http &nbsp;&nbsp;&nbsp;&nbsp; Apache httpd 2.2.8 (Ubuntu)</p>
+                        <p class="text-gray-500">443/tcp closed &nbsp; https</p>
+                        <p class="mt-4 text-gray-400 italic">MAC: 00:0C:29:FA:DD:2A (VMware)</p>
+                    </div>
+                    <div class="flex flex-col justify-center space-y-6">
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded bg-red-500/10 flex items-center justify-center border border-red-500/20"><i class="fas fa-exclamation-triangle text-red-500"></i></div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Outdated Service Detected</h4>
+                                <p class="text-xs text-gray-500">Apache 2.2.8 is over 15 years old and contains multiple critical vulnerabilities.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-10 h-10 rounded bg-blue-500/10 flex items-center justify-center border border-blue-500/20"><i class="fas fa-info-circle text-blue-500"></i></div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">Stealth Scan Results</h4>
+                                <p class="text-xs text-gray-500">SYN scan confirmed Port 80 is actively serving HTTP requests via Ubuntu DAV/2.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Evidence Section -->
+        <section id="evidence" class="mb-40 reveal">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="mono text-green-500 text-lg font-bold">04/</span>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">Visual Evidence</h2>
+                <div class="flex-grow h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-10">
+                <!-- Portal Mockup based on PDF Screenshot -->
+                <div class="mockup-frame group">
+                    <div class="bg-[#1a1a1a] p-3 border-b border-white/10 flex items-center justify-between">
+                        <div class="flex gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        </div>
+                        <span class="text-[9px] mono text-gray-500">certifiedhacker.com/Social620Midiariamole login.html</span>
+                    </div>
+                    <div class="bg-[#f2f2f2] p-10 min-h-[350px] flex flex-col items-center justify-center text-[#333] font-sans">
+                        <div class="w-full max-w-[320px] bg-white p-8 border border-[#ccc] shadow-sm rounded">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="bg-[#eee] p-2 rounded border border-[#ccc]">
+                                    <i class="fas fa-lock text-gray-500 text-xl"></i>
+                                </div>
+                                <h4 class="font-bold text-[#444] text-sm leading-tight">Administrative Portal Sign in to your account</h4>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="text-[11px] font-bold text-[#666] uppercase">Account Login</div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] text-gray-500">Username:</label>
+                                    <div class="h-8 border border-gray-300 bg-white rounded-sm w-full"></div>
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] text-gray-500">Password:</label>
+                                    <div class="h-8 border border-gray-300 bg-white rounded-sm w-full"></div>
+                                </div>
+                                <div class="flex items-center justify-between pt-2">
+                                    <div class="bg-[#666] hover:bg-black text-white text-[10px] px-4 py-1.5 font-bold rounded cursor-pointer transition">Sign In</div>
+                                    <a href="#" class="text-[9px] text-blue-600 hover:underline">Forgot your password?</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-black/80 p-3 text-[10px] mono text-green-500 border-t border-white/10 italic">
+                        Evidence #01: Misconfigured portal discovered via 'inurl:login' operator.
+                    </div>
+                </div>
+                <!-- PDF -->
+                <div class="mockup-frame bg-gradient-to-br from-[#111] to-black min-h-[350px] p-12 flex flex-col items-center justify-center text-center">
+                    <i class="fas fa-file-pdf text-[100px] text-red-600/30 mb-8"></i>
+                    <h4 class="text-white font-black text-xl mb-2 tracking-tighter uppercase">CEH V10 Study Guide</h4>
+                    <p class="text-[10px] text-gray-500 mono">PATH: clibc.com/wp-content/uploads/...</p>
+                    <div class="mt-6 px-4 py-2 border border-green-500/20 text-green-500 text-[9px] mono rounded uppercase">Internal Guide - Module 15 Leak</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section id="analyst" class="mb-40 reveal">
+            <div class="flex items-center gap-6 mb-12">
+                <span class="mono text-green-500 text-lg font-bold">05/</span>
+                <h2 class="text-4xl font-black uppercase tracking-tighter">About the Analyst</h2>
+                <div class="flex-grow h-px bg-gradient-to-r from-white/10 to-transparent"></div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-10 items-center">
+                <div class="md:col-span-1">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                        <div class="relative bg-card p-2 rounded-2xl border border-white/5 overflow-hidden">
+                            <div class="aspect-square bg-[#1a1a1a] rounded-xl flex items-center justify-center">
+                                <i class="fas fa-user-shield text-[120px] text-gray-800"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:col-span-2 space-y-6">
+                    <div>
+                        <h3 class="text-3xl font-black text-white mb-2 tracking-tight uppercase">Pratik Ingale</h3>
+                        <p class="text-green-500 mono text-sm tracking-widest uppercase font-bold">Cybersecurity Analyst & Ethical Hacker</p>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed">
+                        I am a dedicated cybersecurity enthusiast focused on uncovering system vulnerabilities and implementing robust defensive strategies. My expertise lies in <span class="text-white">OSINT</span>, <span class="text-white">Network Penetration Testing</span>, and <span class="text-white">Security Auditing</span>. 
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 bg-black/40 rounded-xl border border-white/5">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 mono">Focus Areas</h4>
+                            <ul class="text-[10px] space-y-1 text-gray-300">
+                                <li>• Threat Intelligence</li>
+                                <li>• Vulnerability Analysis</li>
+                                <li>• Ethical Hacking</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-black/40 rounded-xl border border-white/5">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 mono">Certifications</h4>
+                            <ul class="text-[10px] space-y-1 text-gray-300">
+                                <li>• CompTIA Security+ (In progress)</li>
+                                <li>• CEH Practical Labs</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 pt-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-green-500 transition"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-green-500 transition"><i class="fab fa-github"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-green-500 transition"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Roadmap -->
+        <section class="mb-20 reveal bg-green-500/5 border border-green-500/20 p-16 rounded-[40px]">
+            <div class="max-w-2xl mx-auto text-center">
+                <h2 class="text-3xl font-black mb-6 uppercase tracking-tighter">Conclusion & Roadmap</h2>
+                <p class="text-gray-400 leading-relaxed mb-10">
+                    The discovery of exposed administrative surfaces and outdated server versions represents a significant security risk. Reconnaissance proved that sensitive internal information is readily available via OSINT.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    <div class="bg-black/40 p-5 rounded-2xl border border-white/5">
+                        <h5 class="text-white font-bold text-xs mb-2">1. Infrastructure Patching</h5>
+                        <p class="text-[10px] text-gray-500">Upgrade Apache httpd to 2.4.x to resolve legacy security exploits.</p>
+                    </div>
+                    <div class="bg-black/40 p-5 rounded-2xl border border-white/5">
+                        <h5 class="text-white font-bold text-xs mb-2">2. Surface Hardening</h5>
+                        <p class="text-[10px] text-gray-500">Implement Robots.txt and directory restrictions to prevent indexing of portals.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-white/5 py-20 px-8 text-center md:text-left">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+            <div>
+                <div class="flex items-center gap-3 justify-center md:justify-start mb-4">
+                    <i class="fas fa-user-ninja text-green-500"></i>
+                    <span class="mono font-bold text-lg text-white">PRATIK_INGALE_SEC</span>
+                </div>
+                <p class="text-gray-600 text-[10px] mono uppercase tracking-widest">
+                    Authorized Lab Assessment // V1.0.5 // Generated Feb 2026
+                </p>
+            </div>
+            <div class="text-gray-700 mono text-[9px] uppercase tracking-widest">
+                Timestamp: <span id="clock"></span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Matrix Canvas
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const matrixBg = document.getElementById('matrix-bg');
+        matrixBg.appendChild(canvas);
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.onresize = resize;
+        resize();
+
+        const chars = '01ABCDEFG';
+        const fontSize = 16;
+        let drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
+
+        function draw() {
+            ctx.fillStyle = 'rgba(5, 6, 8, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * characters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(draw, 50);
+
+        // Boot Loader
+        const bootText = [
+            "> KERNEL_LOAD: OK",
+            "> INIT_RECON_MODULE: SUCCESS",
+            "> TARGET: certifiedhacker.com",
+            "> SCANNING: 192.168.37.134",
+            "> DATA_EXFIL: PORT_80_HTTP",
+            "> PARSING_EVIDENCE_LOGS...",
+            "> SYSTEM_READY."
+        ];
+        const bootContainer = document.getElementById('boot-sequence');
+        const progress = document.getElementById('boot-progress');
+        let bootIdx = 0;
+
+        function typeBoot() {
+            if (bootIdx < bootText.length) {
+                const p = document.createElement('p');
+                p.textContent = bootText[bootIdx];
+                bootContainer.appendChild(p);
+                bootIdx++;
+                progress.style.width = (bootIdx / bootText.length * 100) + '%';
+                setTimeout(typeBoot, 200);
+            } else {
+                setTimeout(() => {
+                    document.getElementById('boot-loader').style.opacity = '0';
+                    setTimeout(() => document.getElementById('boot-loader').style.visibility = 'hidden', 800);
+                }, 500);
+            }
+        }
+        typeBoot();
+
+        // Reveal logic
+        function reveal() {
+            const reveals = document.querySelectorAll(".reveal");
+            reveals.forEach(r => {
+                if (r.getBoundingClientRect().top < window.innerHeight - 100) r.classList.add("active");
+            });
+        }
+        window.addEventListener("scroll", reveal);
+
+        // Interactive Scan
+        const runBtn = document.getElementById('run-recon');
+        const output = document.getElementById('recon-output');
+        const logs = [
+            "# Executing: theHarvester -d certifiedhacker.com -b all",
+            "*******************************************************************",
+            "theHarvester 4.8.2 - Coded by Christian Martorella",
+            "*******************************************************************",
+            "[+] Target: certifiedhacker.com",
+            "[*] Searching Google, Duckduckgo, CRTsh...",
+            "[!] Error: 912.168.37.134 failed to resolve (Typo in lab parameters detected)",
+            "[+] Found Hosts: 1",
+            "    demo.certifiedhacker.com",
+            "[+] Searching LinkedIn...",
+            "    Discovered entry: Prateek Nagpal (Anonymous login in FTP)",
+            "[+] Scan finished."
+        ];
+
+        runBtn.onclick = () => {
+            output.innerHTML = '';
+            runBtn.disabled = true;
+            let i = 0;
+            function add() {
+                if (i < logs.length) {
+                    const p = document.createElement('p');
+                    p.textContent = logs[i];
+                    p.className = logs[i].includes('Error') ? 'text-red-500' : (logs[i].includes('Hosts') ? 'text-yellow-500' : 'text-white');
+                    output.appendChild(p);
+                    output.scrollTop = output.scrollHeight;
+                    i++;
+                    setTimeout(add, 200);
+                } else runBtn.disabled = false;
+            }
+            add();
+        };
+
+        // Network Path sizing
+        function updatePath() {
+            const path = document.getElementById('scan-path');
+            const svg = path.closest('svg');
+            const container = svg.parentElement;
+            if (container) {
+                svg.setAttribute('viewBox', `0 0 ${container.offsetWidth} 80`);
+                path.setAttribute('d', `M 0 40 Q ${container.offsetWidth / 2} 0 ${container.offsetWidth} 40`);
+            }
+        }
+        window.onload = updatePath;
+        window.onresize = updatePath;
+
+        setInterval(() => {
+            document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
